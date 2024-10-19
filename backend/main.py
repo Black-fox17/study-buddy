@@ -22,19 +22,22 @@ class Message(BaseModel):
     content: str
     sender: str
 
+
 # Input model to receive a string
 class ModelInput(BaseModel):
     input_text: str
+    user_id : str
 
 # Route to accept input and process it with the ML model
 @app.post("/api/predict")
 async def predict(input_data: ModelInput):
-    input_str = input_data.input_text  # Extract the input string from the request
+    input_str = input_data.input_text
+    user_id = input_data.user_id  # Extract the input string from the request
     if not input_str:
         raise HTTPException(status_code=400, detail="Input string is empty")
 
     # Pass the input to your ML model and get a result
-    result = chat_with_llm(input_str)
+    result = chat_with_llm(user_id,input_str)
 
     # Return the result to the client
     return {"input": input_str, "result": result}
