@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, HTTPException, WebSocket, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 from model import chat_with_llm
+from test import get_response
+from pdf import get_pdf_response
 app = FastAPI()
 
 # Enable CORS
@@ -42,6 +44,20 @@ async def predict(input_data: ModelInput):
     # Return the result to the client
     return {"input": input_str, "result": result}
 
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        # You can save the file locally, process it, or send it to a database
+        file_content = await file.read()
+        #response = get_response(file_content)
+        if file.filename[-3:1] == "pdf":
+            response = get_pdf_response(file_content)
+        else:
+            response = get_response(file_content)
+        #For now, let's just return the file's size as a response
+        return {"filename": file.filename, "size": len(file_content),"result": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
 # @app.post("/api/send_message")
 # async def send_message(message: Message):
